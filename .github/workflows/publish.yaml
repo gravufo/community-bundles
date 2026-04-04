@@ -38,6 +38,7 @@ jobs:
           - kairos-operator
           - k9s
           - qemu-guest-agent
+          - nfs-utils
     env:
       REGISTRY: quay.io
       REGISTRY_USER: ${{ secrets.REGISTRY_USERNAME }}
