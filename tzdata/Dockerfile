@@ -2,10 +2,9 @@
 ARG ALPINE_VERSION=3.21
 FROM alpine:${ALPINE_VERSION} AS build
 
-RUN apk add --no-cache tzdata && \
+RUN apk add --no-cache tzdata tar && \
     mkdir -p /pkg/usr/share/zoneinfo && \
-    cp -r /usr/share/zoneinfo/. /pkg/usr/share/zoneinfo/
+    tar --hard-dereference -C /usr/share/zoneinfo -cf - . | tar -C /pkg/usr/share/zoneinfo -xf -
 
 FROM scratch
-COPY run.sh /run.sh
-COPY --from=build /pkg /
+COPY --from=build /pkg/usr /usr

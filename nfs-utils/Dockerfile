@@ -62,9 +62,8 @@ RUN sed -i '1s/^/#include <unistd.h>\n/' support/reexport/fsidd.c && \
     make -C utils/mount CC=gcc-static-wrap LDFLAGS="-Wl,--strip-all"
 
 RUN set -ex; \
-    mkdir -p /pkg/usr/bin; \
-    find utils/mount -maxdepth 1 -type f -perm /111 -exec cp {} /pkg/usr/bin/ \;
+    mkdir -p /pkg/usr/sbin; \
+    find utils/mount -maxdepth 1 -type f -perm /111 -exec cp {} /pkg/usr/sbin/ \;
 
 FROM scratch
-COPY run.sh /run.sh
-COPY --from=build /pkg /
+COPY --from=build /pkg/usr /usr
