@@ -1,14 +1,29 @@
-ARG ALPINE_VERSION=3.20
+# renovate: datasource=docker depName=alpine versioning=docker
+ARG ALPINE_VERSION=3.21
+FROM alpine:${ALPINE_VERSION} AS build
+
+RUN apk add --no-cache \
+    bash \
+    build-base \
+    python3 \
+    py3-setuptools \
+    meson \
+    ninja \
+    git \
+    linux-headers \
+    glib-dev \
+    glib-static \
+    libcap-ng-dev \
+    libcap-ng-static \
+    util-linux-dev \
+    util-linux-static \
+    libffi-dev \
+    pcre2-dev \
+    zlib-dev \
+    zlib-static
+
+# renovate: datasource=github-tags depName=qemu/qemu versioning=semver
 ARG QEMU_REF=v10.0.4
-
-FROM debian:bookworm-slim AS build
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  bash git build-essential meson ninja-build python3 python3-venv pkg-config \
-  libglib2.0-dev libcap-ng-dev libmount-dev uuid-dev ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-
-ARG QEMU_REF
 
 WORKDIR /src
 RUN git clone --depth=1 --branch "${QEMU_REF}" https://github.com/qemu/qemu.git .
@@ -19,11 +34,13 @@ RUN ./configure \
       --enable-guest-agent \
       --disable-tools \
       --disable-system \
-      --disable-user
+      --disable-user \
+      --static
 
-      RUN make -j"$(nproc)" qemu-ga
-RUN DESTDIR=/pkg make install
-
+RUN make -j"$(nproc)" qemu-ga
+RUN mkdir -p /pkg/usr/bin && \
+    cp build/qga/qemu-ga /pkg/usr/bin/qemu-ga && \
+    strip /pkg/usr/bin/qemu-ga
 
 FROM scratch
 COPY run.sh /run.sh
